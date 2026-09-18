@@ -25,6 +25,14 @@ class PredictionRequest(BaseModel):
     previous_delay: Optional[Union[bool, str]] = Field(default=None, alias="previousDelay")
     project_status: Optional[str] = Field(default=None, alias="currentStage")
 
+    # RFCTLARR Act dates & Project Name (Optional)
+    project_name: Optional[str] = Field(default=None, alias="projectName")
+    sia_start_date: Optional[str] = Field(default=None, alias="siaStartDate")
+    sia_completion_date: Optional[str] = Field(default=None, alias="siaCompletionDate")
+    preliminary_notification_date: Optional[str] = Field(default=None, alias="preliminaryNotificationDate")
+    declaration_date: Optional[str] = Field(default=None, alias="declarationDate")
+    award_date: Optional[str] = Field(default=None, alias="awardDate")
+
     class Config:
         populate_by_name = True
         extra = "allow"
@@ -35,11 +43,19 @@ class PredictionRequest(BaseModel):
         status_val = self.project_status or "In Progress"
         stage_map = {
             "SIA": "Early Stage",
+            "Social Impact Assessment (SIA)": "Early Stage",
+            "Expert Group Appraisal": "Early Stage",
             "Notification": "Early Stage",
+            "Preliminary Notification (Section 11)": "Early Stage",
+            "Objection Hearing": "Early Stage",
+            "Objection Hearing (Section 15)": "Early Stage",
             "Declaration": "In Progress",
+            "Declaration (Section 19)": "In Progress",
             "Award": "In Progress",
+            "Award (Section 25)": "In Progress",
             "Compensation": "In Progress",
             "Possession": "Near Completion",
+            "Compensation & Possession (Section 38)": "Near Completion",
             "Completed": "Completed"
         }
         status_val = stage_map.get(status_val, status_val)
@@ -107,4 +123,16 @@ class PredictionResponse(BaseModel):
     ai_summary: str
     top_contributing_factors: List[FactorInsight]
     recommended_actions: List[RecommendationItem]
-    prediction_summary: Dict[str, Any]
+    prediction_summary: Dict[str, Any]
+
+    # RFCTLARR Act Dynamic Timeline Engine Fields
+    ml_delay_days: Optional[int] = None
+    expected_legal_days: Optional[int] = None
+    projected_completion_days: Optional[int] = None
+    delay_beyond_act_days: Optional[int] = None
+    delay_beyond_act_months: Optional[float] = None
+    current_stage: Optional[str] = None
+    act_compliance: Optional[str] = None
+    stage_timeline: Optional[List[Dict[str, Any]]] = None
+    legal_timeline_comparison: Optional[List[str]] = None
+

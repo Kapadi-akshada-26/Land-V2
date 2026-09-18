@@ -9,6 +9,13 @@ const ALL_STAGES: AcquisitionStage[] = [
 
 // Expected days per stage (rough benchmarks for government land acquisition)
 const EXPECTED_DAYS: Record<AcquisitionStage, number> = {
+  "Social Impact Assessment (SIA)": 180,
+  "Expert Group Appraisal": 60,
+  "Preliminary Notification (Section 11)": 180,
+  "Objection Hearing (Section 15)": 60,
+  "Declaration (Section 19)": 365,
+  "Award (Section 25)": 365,
+  "Compensation & Possession (Section 38)": 90,
   SIA: 45,
   Notification: 30,
   Declaration: 60,

@@ -4,6 +4,13 @@
 export type RiskLevel = "Critical" | "High" | "Medium" | "Low";
 
 export type AcquisitionStage =
+  | "Social Impact Assessment (SIA)"
+  | "Expert Group Appraisal"
+  | "Preliminary Notification (Section 11)"
+  | "Objection Hearing (Section 15)"
+  | "Declaration (Section 19)"
+  | "Award (Section 25)"
+  | "Compensation & Possession (Section 38)"
   | "SIA"
   | "Notification"
   | "Declaration"
@@ -18,6 +25,8 @@ export interface DashboardStats {
   mediumRisk: number;
   onTrack: number;
   avgDelayProbability: number; // 0–100 (percentage)
+  projectsBeyondAct?: number;
+  criticalAlerts?: number;
 }
 
 export interface Project {
@@ -90,6 +99,7 @@ export interface DistrictTrend {
 }
 
 export interface PredictionRequest {
+  projectName?: string;
   state: string;
   district: string;
   projectType: string;
@@ -107,6 +117,20 @@ export interface PredictionRequest {
   forestClearance: string;
   previousDelay: boolean;
   currentStage: AcquisitionStage;
+
+  // RFCTLARR Act timeline inputs
+  siaStartDate?: string;
+  siaCompletionDate?: string;
+  preliminaryNotificationDate?: string;
+  declarationDate?: string;
+  awardDate?: string;
+}
+
+export interface StageTimelineItem {
+  stage: string;
+  label: string;
+  status: "completed" | "current" | "upcoming" | "future" | "delayed" | "in_progress" | "pending";
+  statusText?: string;
 }
 
 export interface PredictionResponse {
@@ -117,6 +141,20 @@ export interface PredictionResponse {
   shapValues?: Record<string, number>;
   aiPriority?: string;
   aiSummary?: string;
+
+  // Extended RFCTLARR Timeline Fields
+  mlDelayDays?: number;
+  expectedLegalDays?: number;
+  legalDeadlineDate?: string;
+  daysRemaining?: number;
+  projectedCompletionDays?: number;
+  delayBeyondActDays?: number;
+  delayBeyondActMonths?: number;
+  currentStage?: AcquisitionStage | string;
+  actCompliance?: "On Track" | "Warning" | "Delayed" | "Critical" | string;
+  stageTimeline?: StageTimelineItem[];
+  legalTimelineComparison?: string[];
+
   topContributingFactors?: Array<{
     factor: string;
     value: string | number;
