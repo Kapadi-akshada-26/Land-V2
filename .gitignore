@@ -8,8 +8,11 @@ venv/
 __pycache__/
 *.pyc
 
-# Model files (if too large)
-*.pkl
+# Ignore all pickle files
+*.pk1
+
+# Track only production ML models
+!backend/app/ml/*.pkl
 
 # Environment variables
 .env
