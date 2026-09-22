@@ -1,6 +1,7 @@
 // src/app/dashboard/page.tsx
 // Dashboard page — server component; fetches all data, renders client charts
 
+import SmartAlertBanner from "@/components/dashboard/SmartAlertBanner";
 import KpiCards from "@/components/dashboard/KpiCards";
 import ProjectsNeedingAttention from "@/components/dashboard/ProjectsNeedingAttention";
 import TopDelayDrivers from "@/components/dashboard/TopDelayDrivers";
@@ -37,6 +38,9 @@ export default async function DashboardPage() {
           Early detection of land acquisition delays across infrastructure projects
         </p>
       </div>
+
+      {/* AI Priority Alert Banner */}
+      <SmartAlertBanner />
 
       {/* Row 1 — KPI Cards */}
       <KpiCards stats={stats} />

@@ -1,92 +1,29 @@
 "use client";
 // src/components/predict/PredictForm.tsx
-// Smart Dynamic Input Form aligned with RFCTLARR Act, 2013 acquisition stages.
+// Smart Executive Prediction Form with 4 Icon Sections & Dynamic State -> District Dropdown
 
 import { useState, useMemo } from "react";
-import { Loader2, Scale, CheckCircle2, ChevronDown, ChevronUp, Sparkles, ShieldCheck, Search, Calendar } from "lucide-react";
+import { Loader2, Building2, PieChart, AlertTriangle, Sparkles, Scale, CheckCircle2 } from "lucide-react";
 import { predictRisk } from "@/services/predictionService";
 import { USE_MOCK } from "@/services/api";
+import { ALL_INDIAN_STATES, getDistrictsForState } from "@/data/districtData";
+import { RFCTLARR_STAGES } from "@/components/projects/StageTimeline";
 import type { PredictionRequest, PredictionResponse, AcquisitionStage } from "@/types";
 import PredictionResult from "./PredictionResult";
-
-const STATES = [
-  "Maharashtra", "Gujarat", "Rajasthan", "Karnataka", "Uttar Pradesh",
-  "Madhya Pradesh", "Andhra Pradesh", "Tamil Nadu", "West Bengal",
-  "Odisha", "Jharkhand", "Telangana", "Punjab", "Haryana",
-];
-
-const STATE_DISTRICTS_MAP: Record<string, string[]> = {
-  Maharashtra: ["Nashik", "Thane", "Nagpur", "Pune", "Mumbai Suburban", "Mumbai City", "Aurangabad", "Ahmednagar", "Solapur", "Kolhapur", "Palghar", "Raigad", "Satara", "Jalgaon", "Nanded", "Amravati"],
-  Gujarat: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Vapi", "Bharuch", "Gandhinagar", "Jamnagar", "Bhavnagar", "Kheda", "Kutch", "Mehsana", "Valsad"],
-  Rajasthan: ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer", "Bikaner", "Alwar", "Bhilwara", "Nagaur", "Sikar"],
-  Karnataka: ["Bengaluru Urban", "Bengaluru Rural", "Mysuru", "Dakshina Kannada", "Dharwad", "Belagavi", "Kalaburagi", "Ballari", "Tumakuru", "Udupi"],
-  "Uttar Pradesh": ["Lucknow", "Kanpur Nagar", "Gautam Buddha Nagar", "Ghaziabad", "Varanasi", "Agra", "Prayagraj", "Gorakhpur", "Meerut", "Bareilly", "Mathura", "Ayodhya"],
-  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur", "Ujjain", "Sagar", "Rewa", "Satna"],
-  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati", "Kakinada", "Nellore", "Kurnool", "Anantapur"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Vellore", "Erode"],
-  "West Bengal": ["Kolkata", "Howrah", "North 24 Parganas", "South 24 Parganas", "Hooghly", "Paschim Medinipur", "Darjeeling"],
-  Odisha: ["Sambalpur", "Koraput", "Khurda", "Cuttack", "Ganjam", "Sundargarh", "Balasore", "Puri", "Mayurbhanj"],
-  Jharkhand: ["Ranchi", "East Singhbhum", "Dhanbad", "Bokaro", "Hazaribagh", "Deoghar"],
-  Telangana: ["Hyderabad", "Ranga Reddy", "Medchal-Malkajgiri", "Warangal", "Nizamabad", "Karimnagar"],
-  Punjab: ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "SAS Nagar (Mohali)", "Bathinda"],
-  Haryana: ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal", "Hisar", "Rohtak", "Sonipat"],
-};
 
 const PROJECT_TYPES = [
   "Highway", "Industrial Corridor", "Metro Rail", "Airport",
   "Irrigation", "Railway", "Power Plant", "Smart City", "Port",
 ];
 
-// Exact RFCTLARR Act 2013 acquisition stages in legal order
-const STAGES: AcquisitionStage[] = [
-  "Social Impact Assessment (SIA)",
-  "Expert Group Appraisal",
-  "Preliminary Notification (Section 11)",
-  "Objection Hearing (Section 15)",
-  "Declaration (Section 19)",
-  "Award (Section 25)",
-  "Compensation & Possession (Section 38)",
-];
-
-const STAGE_LEGAL_TIMELINES: Record<string, { duration: string; description: string }> = {
-  "Social Impact Assessment (SIA)": {
-    duration: "Up to 6 months allowed",
-    description: "Statutory timeframe allowed under RFCTLARR Act for SIA study and report preparation.",
-  },
-  "Expert Group Appraisal": {
-    duration: "Around 2 months allowed",
-    description: "Appraisal of SIA report by Multi-Disciplinary Expert Group under Section 7.",
-  },
-  "Preliminary Notification (Section 11)": {
-    duration: "SIA valid up to 12 months",
-    description: "SIA study report remains valid for 12 months to publish Section 11 Preliminary Notification.",
-  },
-  "Objection Hearing (Section 15)": {
-    duration: "60 days allowed under RFCTLARR Act",
-    description: "Statutory time limit for receiving and hearing landowner objections after Section 11 Notification.",
-  },
-  "Declaration (Section 19)": {
-    duration: "Within 12 months of Preliminary Notification",
-    description: "Section 11 Notification lapses if Section 19 Declaration is not published within 12 months.",
-  },
-  "Award (Section 25)": {
-    duration: "Within 12 months of Declaration",
-    description: "Entire land acquisition proceedings lapse if Section 25 Award is not declared within 12 months.",
-  },
-  "Compensation & Possession (Section 38)": {
-    duration: "Around 3 months after Award",
-    description: "Full compensation payment and R&R provision required before taking physical possession.",
-  },
-};
-
 const CLEARANCE_OPTIONS = ["Approved", "Pending", "Not Required"];
 
 const PROCESSING_STEPS = [
-  "Validating Inputs",
-  "Checking RFCTLARR Timeline",
-  "Running XGBoost Prediction",
-  "Generating SHAP Explanation",
-  "Preparing Recommendations",
+  "Validating Project Inputs",
+  "Processing State & District Parameters",
+  "Running XGBoost ML Delay Model",
+  "Calculating SHAP Risk Factors",
+  "Generating AI Recommendations",
 ];
 
 interface FieldProps {
@@ -94,25 +31,30 @@ interface FieldProps {
   required?: boolean;
   children: React.ReactNode;
   hint?: string;
+  error?: string;
 }
 
-function Field({ label, required, children, hint }: FieldProps) {
+function Field({ label, required, children, hint, error }: FieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-[11px] font-bold text-[#687386] uppercase tracking-wide">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[10px] text-[#687386]">{hint}</p>}
+      {error ? (
+        <p className="text-[10px] text-red-600 font-semibold">{error}</p>
+      ) : hint ? (
+        <p className="text-[10px] text-[#687386]">{hint}</p>
+      ) : null}
     </div>
   );
 }
 
 const inputCls =
-  "w-full px-3 py-2.5 text-[13px] border border-[#e6eaf0] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2457d6]/30 text-[#172033]";
+  "w-full px-3.5 py-2.5 text-[13px] border border-[#e6eaf0] rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#2457d6]/30 text-[#172033] shadow-2xs";
 
 const selectCls =
-  "w-full px-3 py-2.5 text-[13px] border border-[#e6eaf0] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2457d6]/30 text-[#172033] cursor-pointer disabled:bg-[#f8fafc] disabled:text-gray-400 disabled:cursor-not-allowed";
+  "w-full px-3.5 py-2.5 text-[13px] border border-[#e6eaf0] rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#2457d6]/30 text-[#172033] cursor-pointer disabled:bg-[#f8fafc] disabled:text-gray-400 disabled:cursor-not-allowed shadow-2xs";
 
 interface PredictFormProps {
   initialValues?: PredictionRequest | null;
@@ -121,90 +63,110 @@ interface PredictFormProps {
 export default function PredictForm({ initialValues }: PredictFormProps = {}) {
   const [form, setForm] = useState<Partial<PredictionRequest>>(() => ({
     projectName: initialValues?.projectName || "",
-    state: initialValues?.state || "",
-    district: initialValues?.district || "",
-    projectType: initialValues?.projectType || "",
-    totalLandRequired: initialValues?.totalLandRequired,
-    landAcquiredPercentage: initialValues?.landAcquiredPercentage,
-    landPossessionPercentage: initialValues?.landPossessionPercentage,
-    pendingApprovals: initialValues?.pendingApprovals,
-    compensationPendingPercentage: initialValues?.compensationPendingPercentage,
-    legalDisputes: initialValues?.legalDisputes,
-    ownershipDisputes: initialValues?.ownershipDisputes,
-    affectedFamilies: initialValues?.affectedFamilies,
-    displacedFamilies: initialValues?.displacedFamilies,
-    rrCompletionPercentage: initialValues?.rrCompletionPercentage,
-    environmentClearance: initialValues?.environmentClearance || "",
-    forestClearance: initialValues?.forestClearance || "",
+    state: initialValues?.state || "Maharashtra",
+    district: initialValues?.district || "Nashik",
+    projectType: initialValues?.projectType || "Highway",
+    totalLandRequired: initialValues?.totalLandRequired ?? 120,
+    landAcquiredPercentage: initialValues?.landAcquiredPercentage ?? 45,
+    landPossessionPercentage: initialValues?.landPossessionPercentage ?? 30,
+    pendingApprovals: initialValues?.pendingApprovals ?? 4,
+    compensationPendingPercentage: initialValues?.compensationPendingPercentage ?? 55,
+    legalDisputes: initialValues?.legalDisputes ?? 2,
+    ownershipDisputes: initialValues?.ownershipDisputes ?? 1,
+    affectedFamilies: initialValues?.affectedFamilies ?? 50,
+    displacedFamilies: initialValues?.displacedFamilies ?? 15,
+    rrCompletionPercentage: initialValues?.rrCompletionPercentage ?? 40,
+    environmentClearance: initialValues?.environmentClearance || "Approved",
+    forestClearance: initialValues?.forestClearance || "Pending",
     previousDelay: initialValues?.previousDelay || false,
-    currentStage: initialValues?.currentStage,
-    siaStartDate: "",
-    siaCompletionDate: "",
-    preliminaryNotificationDate: "",
-    declarationDate: "",
-    awardDate: "",
+    currentStage: (initialValues?.currentStage || "Preliminary Notification (Section 11)") as AcquisitionStage,
   }));
 
-  const [districtSearch, setDistrictSearch] = useState("");
-  const [stageStartDate, setStageStartDate] = useState("");
+  const [stageStartDate, setStageStartDate] = useState("2026-08-10");
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [result, setResult] = useState<PredictionResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  // Available districts based on selected state
+  const availableDistricts = useMemo(() => {
+    return getDistrictsForState(form.state || "");
+  }, [form.state]);
 
   function set(key: keyof PredictionRequest, value: unknown) {
     setForm((f) => ({ ...f, [key]: value }));
+    if (formErrors[key]) {
+      setFormErrors((errs) => {
+        const copy = { ...errs };
+        delete copy[key];
+        return copy;
+      });
+    }
   }
 
-  // Handle State Change -> Reset District & Filter District List
-  const handleStateChange = (selectedState: string) => {
-    setForm((f) => ({ ...f, state: selectedState, district: "" }));
-    setDistrictSearch("");
+  // Handle Percentage helper (clamped 0 to 100)
+  function handlePercentageChange(key: keyof PredictionRequest, rawVal: string) {
+    if (rawVal === "") {
+      set(key, undefined);
+      return;
+    }
+    const val = parseFloat(rawVal);
+    if (isNaN(val)) return;
+    const clamped = Math.min(100, Math.max(0, val));
+    set(key, clamped);
+  }
+
+  // Handle Non-negative numbers helper
+  function handleCountChange(key: keyof PredictionRequest, rawVal: string) {
+    if (rawVal === "") {
+      set(key, undefined);
+      return;
+    }
+    const val = parseInt(rawVal, 10);
+    if (isNaN(val)) return;
+    set(key, Math.max(0, val));
+  }
+
+  // Dynamic State -> District Handler
+  const handleStateChange = (newState: string) => {
+    const districts = getDistrictsForState(newState);
+    setForm((f) => ({
+      ...f,
+      state: newState,
+      district: districts.length > 0 ? districts[0] : "",
+    }));
   };
-
-  const availableDistricts = useMemo(() => {
-    if (!form.state) return [];
-    const list = STATE_DISTRICTS_MAP[form.state] || [
-      "Central District", "North District", "South District", "East District", "West District"
-    ];
-    if (!districtSearch.trim()) return list;
-    return list.filter((d) => d.toLowerCase().includes(districtSearch.toLowerCase()));
-  }, [form.state, districtSearch]);
-
-  const selectedStage = form.currentStage || "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setResult(null);
+    setServerError(null);
+    setFormErrors({});
 
-    // Basic validation
-    const required: (keyof PredictionRequest)[] = [
-      "state", "district", "projectType", "currentStage",
-      "environmentClearance", "forestClearance",
-    ];
-    for (const k of required) {
-      if (!form[k]) {
-        setError(`Please fill in all required fields (${k} is missing).`);
-        return;
-      }
+    // Inline Validation
+    const errors: Record<string, string> = {};
+    if (!form.state) errors.state = "State selection is required";
+    if (!form.district) errors.district = "District selection is required";
+    if (!form.projectType) errors.projectType = "Project type is required";
+    if (!form.currentStage) errors.currentStage = "Acquisition stage is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
     }
 
     setLoading(true);
     setActiveStep(0);
 
-    // Step progress animation
     const stepInterval = setInterval(() => {
       setActiveStep((prev) => {
         if (prev < PROCESSING_STEPS.length - 1) return prev + 1;
         clearInterval(stepInterval);
         return prev;
       });
-    }, 280);
+    }, 250);
 
     try {
-      // Pass single stageStartDate to specific stage field
       const payload: PredictionRequest = {
         ...(form as PredictionRequest),
         siaStartDate: stageStartDate,
@@ -218,327 +180,302 @@ export default function PredictForm({ initialValues }: PredictFormProps = {}) {
         setResult(res);
         setLoading(false);
         clearInterval(stepInterval);
-      }, 1200);
-    } catch (err) {
+      }, 1000);
+    } catch {
       clearInterval(stepInterval);
-      setError("Prediction failed. Check that the FastAPI backend is running.");
+      setServerError("Prediction server unavailable. Ensure FastAPI backend is active.");
       setLoading(false);
     }
   }
 
   function handleReset() {
     setResult(null);
-    setError(null);
-    setStageStartDate("");
-    setDistrictSearch("");
+    setServerError(null);
+    setFormErrors({});
+    setStageStartDate("2026-08-10");
     setForm({
       projectName: "",
-      state: "",
-      district: "",
-      projectType: "",
-      totalLandRequired: undefined,
-      landAcquiredPercentage: undefined,
-      landPossessionPercentage: undefined,
-      pendingApprovals: undefined,
-      compensationPendingPercentage: undefined,
-      legalDisputes: undefined,
-      ownershipDisputes: undefined,
-      affectedFamilies: undefined,
-      displacedFamilies: undefined,
-      rrCompletionPercentage: undefined,
-      environmentClearance: "",
-      forestClearance: "",
+      state: "Maharashtra",
+      district: "Nashik",
+      projectType: "Highway",
+      totalLandRequired: 100,
+      landAcquiredPercentage: 40,
+      landPossessionPercentage: 25,
+      pendingApprovals: 3,
+      compensationPendingPercentage: 50,
+      legalDisputes: 1,
+      ownershipDisputes: 0,
+      affectedFamilies: 40,
+      displacedFamilies: 10,
+      rrCompletionPercentage: 50,
+      environmentClearance: "Approved",
+      forestClearance: "Pending",
       previousDelay: false,
-      currentStage: undefined,
-      siaStartDate: "",
-      siaCompletionDate: "",
-      preliminaryNotificationDate: "",
-      declarationDate: "",
-      awardDate: "",
+      currentStage: "Preliminary Notification (Section 11)" as AcquisitionStage,
     });
   }
 
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="bg-white border border-[#e6eaf0] rounded-2xl shadow-sm overflow-hidden">
-        {/* Form Header */}
-        <div className="px-6 py-4 border-b border-[#e6eaf0] bg-[#f8fafc] flex items-center justify-between">
+        {/* Form Title Banner */}
+        <div className="px-6 py-4 border-b border-[#e6eaf0] bg-[#f8fafc] flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-[14px] font-bold text-[#172033]">Project Parameters</h2>
+            <h2 className="text-[15px] font-extrabold text-[#172033]">Land Acquisition Risk Form</h2>
             <p className="text-[11px] text-[#687386] mt-0.5">
-              RFCTLARR stage-aware dynamic form — inputs feed FastAPI &amp; XGBoost
+              Enter acquisition parameters to run XGBoost risk modeling &amp; RFCTLARR stage evaluation
             </p>
           </div>
-          <span className={`text-[10px] rounded px-2.5 py-1 font-semibold border ${USE_MOCK
-              ? "bg-amber-50 text-amber-600 border-amber-200"
-              : "bg-emerald-50 text-emerald-700 border-emerald-200"
-            }`}>
-            {USE_MOCK ? "Mock Mode Active" : "FastAPI + ML Live"}
+          <span
+            className={`text-[10px] rounded-md px-3 py-1 font-bold border ${
+              USE_MOCK ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"
+            }`}
+          >
+            {USE_MOCK ? "Simulation Mode" : "FastAPI ML Backend Live"}
           </span>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Section 1: Permanent Inputs — Location & Overview */}
-          <div>
-            <p className="text-[11px] font-bold text-[#2457d6] uppercase tracking-widest mb-3">
-              1 · Project Identification &amp; Location (Permanent)
-            </p>
+          {/* SECTION 1: PROJECT DETAILS */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-[#e6eaf0] pb-2">
+              <Building2 size={18} className="text-[#2457d6]" />
+              <h3 className="text-[13px] font-extrabold text-[#172033] uppercase tracking-wider">
+                1. Project Details
+              </h3>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Field label="Project Name" hint="e.g. Nashik Highway Expansion">
+              <Field label="Project Name" hint="e.g. NH-48 Nashik Bypass">
                 <input
                   className={inputCls}
-                  placeholder="e.g. Vadodara Expressway Package III"
+                  placeholder="e.g. NH-48 Highway Expansion"
                   value={form.projectName ?? ""}
                   onChange={(e) => set("projectName", e.target.value)}
                 />
               </Field>
 
-              {/* 1. State Dropdown */}
-              <Field label="State" required>
+              {/* Dynamic State Select */}
+              <Field label="State" required error={formErrors.state}>
                 <select
                   className={selectCls}
                   value={form.state ?? ""}
                   onChange={(e) => handleStateChange(e.target.value)}
                 >
                   <option value="">Select State</option>
-                  {STATES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </Field>
-
-              {/* 1. Cascading State -> District Dropdown (Visually Identical to State Dropdown) */}
-              <Field label="District" required hint={!form.state ? "Select State first to enable" : "Cascading district list"}>
-                <select
-                  className={selectCls}
-                  disabled={!form.state}
-                  value={form.district ?? ""}
-                  onChange={(e) => set("district", e.target.value)}
-                >
-                  <option value="">
-                    {!form.state ? "Select State First" : `Select District in ${form.state}`}
-                  </option>
-                  {availableDistricts.map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field label="Project Type" required>
-                <select className={selectCls} value={form.projectType ?? ""} onChange={(e) => set("projectType", e.target.value)}>
-                  <option value="">Select Type</option>
-                  {PROJECT_TYPES.map((t) => <option key={t}>{t}</option>)}
-                </select>
-              </Field>
-            </div>
-          </div>
-
-          {/* Section 2: Permanent Inputs — Core Status & Clearances */}
-          <div>
-            <p className="text-[11px] font-bold text-[#2457d6] uppercase tracking-widest mb-3">
-              2 · Acquisition Status &amp; Clearances (Permanent)
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Field label="Land Acquired (%)" hint="0 – 100%">
-                <input type="number" min={0} max={100} className={inputCls} placeholder="e.g. 42"
-                  value={form.landAcquiredPercentage ?? ""}
-                  onChange={(e) => set("landAcquiredPercentage", parseFloat(e.target.value))} />
-              </Field>
-              <Field label="Compensation Pending (%)" hint="% uncompensated">
-                <input type="number" min={0} max={100} className={inputCls} placeholder="e.g. 62"
-                  value={form.compensationPendingPercentage ?? ""}
-                  onChange={(e) => set("compensationPendingPercentage", parseFloat(e.target.value))} />
-              </Field>
-              <Field label="Legal Cases / Court Stays" hint="Active court cases">
-                <input type="number" min={0} className={inputCls} placeholder="e.g. 17"
-                  value={form.legalDisputes ?? ""}
-                  onChange={(e) => set("legalDisputes", parseInt(e.target.value))} />
-              </Field>
-              <Field label="Environment Clearance" required>
-                <select className={selectCls} value={form.environmentClearance ?? ""} onChange={(e) => set("environmentClearance", e.target.value)}>
-                  <option value="">Select</option>
-                  {CLEARANCE_OPTIONS.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </Field>
-              <Field label="Forest Clearance" required>
-                <select className={selectCls} value={form.forestClearance ?? ""} onChange={(e) => set("forestClearance", e.target.value)}>
-                  <option value="">Select</option>
-                  {CLEARANCE_OPTIONS.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </Field>
-            </div>
-          </div>
-
-          {/* 2 & 3. Highlighted RFCTLARR Section: "RFCTLARR Stage Tracker & Legal Timeline" */}
-          <div className="p-5 bg-gradient-to-r from-[#eef3ff] via-[#e6efff] to-[#edf7f6] border-2 border-[#2457d6] rounded-2xl shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-[12px] font-extrabold text-[#2457d6] uppercase tracking-wider flex items-center gap-2">
-                <Scale size={18} className="text-[#2457d6]" /> 3 · RFCTLARR Stage Tracker &amp; Legal Timeline
-              </p>
-              <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#2457d6] text-white uppercase tracking-wide">
-                Primary Feature
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
-              <Field label="Current Acquisition Stage" required hint="Select exact statutory RFCTLARR stage">
-                <select
-                  className={`${selectCls} border-[#2457d6]/40 font-semibold focus:ring-[#2457d6]`}
-                  value={form.currentStage ?? ""}
-                  onChange={(e) => set("currentStage", e.target.value as AcquisitionStage)}
-                >
-                  <option value="">Select Acquisition Stage</option>
-                  {STAGES.map((s, idx) => (
-                    <option key={s} value={s}>
-                      {idx + 1}. {s}
+                  {ALL_INDIAN_STATES.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
                     </option>
                   ))}
                 </select>
               </Field>
 
-              {/* Automatic "Legal Timeline" Info Card directly below/alongside stage selection */}
-              {selectedStage && STAGE_LEGAL_TIMELINES[selectedStage] ? (
-                <div className="p-4 bg-white border border-[#2457d6]/40 rounded-xl text-[12px] text-[#1e40af] flex items-start gap-3 shadow-2xs animate-in fade-in duration-200">
-                  <Scale size={20} className="text-[#2457d6] shrink-0 mt-0.5" />
-                  <div className="space-y-1 flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-extrabold text-[#172033] text-[13px]">
-                        Current Stage: <span className="text-[#2457d6]">{selectedStage}</span>
-                      </span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className="font-bold text-[#172033]">Legal Timeline:</span>
-                      <span className="text-[11px] font-extrabold text-[#2457d6] bg-[#eef3ff] border border-[#bfdbfe] px-3 py-0.5 rounded-full">
-                        {STAGE_LEGAL_TIMELINES[selectedStage].duration}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#475569] leading-relaxed mt-1">
-                      {STAGE_LEGAL_TIMELINES[selectedStage].description}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-white/70 border border-dashed border-[#2457d6]/30 rounded-xl text-[11px] text-[#475569] flex items-center justify-center">
-                  Select an acquisition stage above to view its statutory RFCTLARR legal timeline limit.
-                </div>
-              )}
-            </div>
+              {/* Dynamic Cascading District Select */}
+              <Field label="District" required error={formErrors.district} hint="Resets when State changes">
+                <select
+                  className={selectCls}
+                  value={form.district ?? ""}
+                  onChange={(e) => set("district", e.target.value)}
+                >
+                  {availableDistricts.map((dst) => (
+                    <option key={dst} value={dst}>
+                      {dst}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-            {/* 4. Single "Stage Start Date" Field (Only 1 relevant date field displayed) */}
-            {selectedStage && (
-              <div className="pt-3 border-t border-[#bfdbfe]/60">
-                <div className="max-w-md">
-                  <Field
-                    label="Stage Start Date"
-                    hint={`Enter the start / notification date for ${selectedStage}`}
-                  >
-                    <div className="relative">
-                      <input
-                        type="date"
-                        className={inputCls}
-                        value={stageStartDate}
-                        onChange={(e) => setStageStartDate(e.target.value)}
-                      />
-                    </div>
-                  </Field>
-                </div>
-              </div>
-            )}
+              {/* Project Type */}
+              <Field label="Project Type" required error={formErrors.projectType}>
+                <select
+                  className={selectCls}
+                  value={form.projectType ?? ""}
+                  onChange={(e) => set("projectType", e.target.value)}
+                >
+                  <option value="">Select Type</option>
+                  {PROJECT_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
           </div>
 
-          {/* Section 4: Optional Collapsible Advanced Parameters */}
-          <div className="border border-[#e6eaf0] rounded-xl overflow-hidden bg-white">
-            <button
-              type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full px-4 py-3 bg-[#f8fafc] text-left flex items-center justify-between text-[12px] font-bold text-[#172033] hover:bg-[#f1f5f9] transition-colors cursor-pointer"
-            >
-              <span className="flex items-center gap-2">
-                <Sparkles size={14} className="text-[#2457d6]" />
-                Additional Project Parameters (Optional)
-              </span>
-              <span className="text-[11px] text-[#687386] font-normal flex items-center gap-1">
-                {showAdvanced ? "Hide Extra Inputs" : "Show Extra Inputs"}
-                {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </span>
-            </button>
+          {/* SECTION 2: LAND PROGRESS */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 border-b border-[#e6eaf0] pb-2">
+              <PieChart size={18} className="text-[#2457d6]" />
+              <h3 className="text-[13px] font-extrabold text-[#172033] uppercase tracking-wider">
+                2. Land Progress Metrics
+              </h3>
+            </div>
 
-            {showAdvanced && (
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-[#e6eaf0] animate-in fade-in duration-200">
-                <Field label="Total Land Required (ha)" hint="Total hectares">
-                  <input type="number" min={0} className={inputCls} placeholder="e.g. 75"
-                    value={form.totalLandRequired ?? ""}
-                    onChange={(e) => set("totalLandRequired", parseFloat(e.target.value))} />
-                </Field>
-                <Field label="Pending Approvals" hint="No. of pending clearances">
-                  <input type="number" min={0} className={inputCls} placeholder="e.g. 5"
-                    value={form.pendingApprovals ?? ""}
-                    onChange={(e) => set("pendingApprovals", parseInt(e.target.value))} />
-                </Field>
-                <Field label="Ownership Disputes" hint="No. of ownership conflicts">
-                  <input type="number" min={0} className={inputCls} placeholder="e.g. 4"
-                    value={form.ownershipDisputes ?? ""}
-                    onChange={(e) => set("ownershipDisputes", parseInt(e.target.value))} />
-                </Field>
-                <Field label="Affected Families" hint="No. of families affected">
-                  <input type="number" min={0} className={inputCls} placeholder="e.g. 65"
-                    value={form.affectedFamilies ?? ""}
-                    onChange={(e) => set("affectedFamilies", parseInt(e.target.value))} />
-                </Field>
-                <Field label="Displaced Families" hint="No. of families displaced">
-                  <input type="number" min={0} className={inputCls} placeholder="e.g. 20"
-                    value={form.displacedFamilies ?? ""}
-                    onChange={(e) => set("displacedFamilies", parseInt(e.target.value))} />
-                </Field>
-                <Field label="R&R Completion (%)" hint="Rehabilitation & Resettlement">
-                  <input type="number" min={0} max={100} className={inputCls} placeholder="e.g. 60"
-                    value={form.rrCompletionPercentage ?? ""}
-                    onChange={(e) => set("rrCompletionPercentage", parseFloat(e.target.value))} />
-                </Field>
-                <Field label="Previous Delay Record">
-                  <select className={selectCls}
-                    value={form.previousDelay ? "yes" : "no"}
-                    onChange={(e) => set("previousDelay", e.target.value === "yes")}>
-                    <option value="no">No Previous Delay</option>
-                    <option value="yes">Yes — Previous Delay</option>
-                  </select>
-                </Field>
-              </div>
-            )}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Field label="Land Acquired (%)" hint="Range: 0% to 100%">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className={inputCls}
+                  placeholder="e.g. 45"
+                  value={form.landAcquiredPercentage ?? ""}
+                  onChange={(e) => handlePercentageChange("landAcquiredPercentage", e.target.value)}
+                />
+              </Field>
+
+              <Field label="Compensation Pending (%)" hint="Range: 0% to 100%">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className={inputCls}
+                  placeholder="e.g. 55"
+                  value={form.compensationPendingPercentage ?? ""}
+                  onChange={(e) => handlePercentageChange("compensationPendingPercentage", e.target.value)}
+                />
+              </Field>
+
+              <Field label="Possession (%)" hint="Physical land possession">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className={inputCls}
+                  placeholder="e.g. 30"
+                  value={form.landPossessionPercentage ?? ""}
+                  onChange={(e) => handlePercentageChange("landPossessionPercentage", e.target.value)}
+                />
+              </Field>
+            </div>
+          </div>
+
+          {/* SECTION 3: RISK FACTORS & STAGE TRACKER */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 border-b border-[#e6eaf0] pb-2">
+              <AlertTriangle size={18} className="text-[#2457d6]" />
+              <h3 className="text-[13px] font-extrabold text-[#172033] uppercase tracking-wider">
+                3. Risk Factors &amp; Acquisition Stage
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Field label="Legal Cases / Court Stays" hint="Active court disputes">
+                <input
+                  type="number"
+                  min={0}
+                  className={inputCls}
+                  placeholder="e.g. 2"
+                  value={form.legalDisputes ?? ""}
+                  onChange={(e) => handleCountChange("legalDisputes", e.target.value)}
+                />
+              </Field>
+
+              <Field label="Pending Approvals" hint="Clearance bottlenecks">
+                <input
+                  type="number"
+                  min={0}
+                  className={inputCls}
+                  placeholder="e.g. 4"
+                  value={form.pendingApprovals ?? ""}
+                  onChange={(e) => handleCountChange("pendingApprovals", e.target.value)}
+                />
+              </Field>
+
+              <Field label="Environmental Clearance">
+                <select
+                  className={selectCls}
+                  value={form.environmentClearance ?? ""}
+                  onChange={(e) => set("environmentClearance", e.target.value)}
+                >
+                  {CLEARANCE_OPTIONS.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Forest Clearance">
+                <select
+                  className={selectCls}
+                  value={form.forestClearance ?? ""}
+                  onChange={(e) => set("forestClearance", e.target.value)}
+                >
+                  {CLEARANCE_OPTIONS.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+
+            {/* RFCTLARR Stage Selector + Stage Start Date */}
+            <div className="p-4 bg-[#f8fafc] border border-[#e6eaf0] rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Current Acquisition Stage" required error={formErrors.currentStage}>
+                <select
+                  className={`${selectCls} font-bold text-[#2457d6] border-[#2457d6]/40`}
+                  value={form.currentStage ?? ""}
+                  onChange={(e) => set("currentStage", e.target.value as AcquisitionStage)}
+                >
+                  {RFCTLARR_STAGES.map((st, idx) => (
+                    <option key={st} value={st}>
+                      {idx + 1}. {st}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Stage Start Date" hint="Date stage commenced">
+                <input
+                  type="date"
+                  className={inputCls}
+                  value={stageStartDate}
+                  onChange={(e) => setStageStartDate(e.target.value)}
+                />
+              </Field>
+            </div>
           </div>
         </div>
 
-        {/* Error Notification */}
-        {error && (
-          <div className="mx-6 mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-[12px] text-red-700">
-            {error}
+        {/* Server Error Message */}
+        {serverError && (
+          <div className="mx-6 mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-[12px] text-red-700 font-semibold">
+            {serverError}
           </div>
         )}
 
-        {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-[#e6eaf0] bg-[#f8fafc] flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#2457d6] text-white text-[13px] font-bold rounded-xl hover:bg-[#173f9f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-xs"
-          >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : "🔍"}
-            {loading ? "Processing…" : "Predict Delay Risk"}
-          </button>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="px-4 py-2.5 text-[13px] font-semibold text-[#687386] hover:text-[#172033] transition-colors cursor-pointer"
-          >
-            Clear
-          </button>
-          <p className="ml-auto text-[11px] text-[#687386]">
-            RFCTLARR Engine → FastAPI → XGBoost model
+        {/* SECTION 4: GENERATE PREDICTION */}
+        <div className="px-6 py-4 border-t border-[#e6eaf0] bg-[#f8fafc] flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-7 py-3 bg-[#2457d6] text-white text-[13px] font-extrabold rounded-xl hover:bg-[#173f9f] transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-md hover:shadow-lg"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+              {loading ? "Calculating ML Risk…" : "Generate Delay Prediction"}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleReset}
+              className="px-4 py-3 text-[12px] font-bold text-[#687386] hover:text-[#172033] transition-colors cursor-pointer"
+            >
+              Reset Form
+            </button>
+          </div>
+
+          <p className="text-[11px] text-[#687386]">
+            FastAPI Pipeline → XGBoost Model → SHAP Risk Engine
           </p>
         </div>
       </form>
 
-      {/* Professional Processing Sequence Modal Overlay */}
+      {/* Loading Modal */}
       {loading && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white border border-[#e6eaf0] rounded-2xl shadow-xl p-6 max-w-md w-full space-y-4 text-center">
@@ -546,9 +483,9 @@ export default function PredictForm({ initialValues }: PredictFormProps = {}) {
               <Loader2 size={24} className="animate-spin text-[#2457d6]" />
             </div>
             <div>
-              <h3 className="text-[15px] font-bold text-[#172033]">Analyzing Project Timeline</h3>
+              <h3 className="text-[15px] font-extrabold text-[#172033]">Evaluating Land Acquisition Risk</h3>
               <p className="text-[11px] text-[#687386] mt-0.5">
-                Evaluating RFCTLARR compliance and running ML predictions…
+                Executing XGBoost model &amp; RFCTLARR stage progress evaluation…
               </p>
             </div>
 
@@ -568,9 +505,9 @@ export default function PredictForm({ initialValues }: PredictFormProps = {}) {
                     <span
                       className={`font-semibold ${
                         isFinished
-                          ? "text-emerald-700"
+                          ? "text-emerald-700 font-bold"
                           : isCurrent
-                          ? "text-[#2457d6] font-bold"
+                          ? "text-[#2457d6] font-extrabold"
                           : "text-gray-400"
                       }`}
                     >
@@ -584,8 +521,9 @@ export default function PredictForm({ initialValues }: PredictFormProps = {}) {
         </div>
       )}
 
-      {/* Result */}
+      {/* Render Prediction Result Component */}
       {result && <PredictionResult result={result} onReset={handleReset} />}
     </div>
   );
 }
+
