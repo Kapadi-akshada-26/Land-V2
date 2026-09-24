@@ -124,44 +124,33 @@ export default function PredictionResult({ result, onReset }: Props) {
 
       {/* ── 1. CIRCULAR RISK GAUGE & 2. PREDICTED DELAY DAYS ───────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* 1. Circular Risk Gauge Component */}
+        {/* 1. Circular Risk Score Card Component (from V1) */}
         <div className="bg-white border border-[#e6eaf0] rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3">
           <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#687386]">
-            1. Delay Risk Level Gauge
+            1. Delay Risk Level Score Card
           </h3>
 
-          {/* SVG Circular Gauge */}
-          <div className="relative w-64 h-36 flex items-center justify-center">
-            <svg viewBox="0 0 200 110" className="w-full h-full overflow-visible">
-              {/* Arc Segments: Low (Green), Medium (Amber), High (Orange), Critical (Red) */}
-              <path d="M 20 100 A 80 80 0 0 1 60 43.4" fill="none" stroke="#10b981" strokeWidth="18" strokeLinecap="round" />
-              <path d="M 60 43.4 A 80 80 0 0 1 100 20" fill="none" stroke="#f59e0b" strokeWidth="18" />
-              <path d="M 100 20 A 80 80 0 0 1 140 43.4" fill="none" stroke="#f97316" strokeWidth="18" />
-              <path d="M 140 43.4 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" strokeWidth="18" strokeLinecap="round" />
-
-              {/* Needle Indicator */}
-              <g transform={`rotate(${needleRotation - 90}, 100, 100)`} className="transition-all duration-1000 ease-out">
-                <line x1="100" y1="100" x2="100" y2="30" stroke="#172033" strokeWidth="3.5" strokeLinecap="round" />
-                <circle cx="100" cy="100" r="7" fill="#172033" />
-              </g>
-            </svg>
-
-            {/* Scale Labels */}
-            <div className="absolute bottom-0 w-full flex justify-between px-4 text-[9px] font-bold text-[#687386]">
-              <span className="text-emerald-600">Low (0-25%)</span>
-              <span className="text-amber-600">Med (25-50%)</span>
-              <span className="text-orange-600">High (50-75%)</span>
-              <span className="text-red-600">Crit (75-100%)</span>
+          {/* Circular probability indicator (V1 Score Card) */}
+          <div className="flex flex-col items-center justify-center gap-2 py-2">
+            <div
+              className="relative w-32 h-32 rounded-full flex items-center justify-center"
+              style={{
+                background: `conic-gradient(${color} ${pct * 3.6}deg, #f0f2f6 0deg)`,
+              }}
+            >
+              <div className="absolute inset-2 bg-white rounded-full flex flex-col items-center justify-center">
+                <span className="text-3xl font-black tracking-tight" style={{ color }}>{pct}%</span>
+                <span className="text-[9px] font-bold text-[#687386] uppercase tracking-wide">DELAY RISK</span>
+              </div>
             </div>
           </div>
 
           {/* Central Score Display */}
-          <div className="pt-2">
+          <div className="pt-1">
             <div className="flex items-center justify-center gap-2">
               <RiskBadge level={result.riskLevel} className="text-[14px] px-3.5 py-1" />
-              <span className="text-[24px] font-black" style={{ color }}>{pct}%</span>
             </div>
-            <p className="text-[11px] text-[#687386] mt-1">XGBoost ML Calculated Delay Probability</p>
+            <p className="text-[11px] text-[#687386] mt-1 font-medium">XGBoost ML Calculated Delay Probability</p>
           </div>
         </div>
 
