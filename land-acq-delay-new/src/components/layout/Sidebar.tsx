@@ -51,8 +51,8 @@ function NavLink({ href, label, Icon, active, onClick }: NavLinkProps) {
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
         active
-          ? "bg-[#08524b] text-white font-semibold shadow-xs"
-          : "text-[#b4d4ce] hover:bg-[#074741] hover:text-white"
+          ? "bg-[#1e293b] text-white font-semibold shadow-xs border-l-2 border-[#3b82f6]"
+          : "text-[#94a3b8] hover:bg-[#1e293b] hover:text-white"
       )}
     >
       <Icon size={16} className="shrink-0" />
@@ -70,7 +70,7 @@ function SidebarContent({ pathname, onClose }: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-[#094d46]">
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-[#1e293b]">
         <Image
           src="/nlogo.jpg.png"
           alt="Logo"
@@ -81,14 +81,14 @@ function SidebarContent({ pathname, onClose }: SidebarContentProps) {
 
         <div>
           <p className="text-white font-bold text-[14px] leading-tight">PurvaDrishti</p>
-          <p className="text-[#7ea8a1] text-[10px] uppercase tracking-wider mt-0.5 font-medium">
+          <p className="text-[#64748b] text-[10px] uppercase tracking-wider mt-0.5 font-medium">
             यथा दृष्टिः तथा सृष्टिः
           </p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="ml-auto text-[#7ea8a1] hover:text-white transition-colors"
+            className="ml-auto text-[#64748b] hover:text-white transition-colors"
           >
             <X size={18} />
           </button>
@@ -97,7 +97,7 @@ function SidebarContent({ pathname, onClose }: SidebarContentProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-[#7ea8a1] px-3 mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#64748b] px-3 mb-2">
           Navigation
         </p>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
@@ -113,7 +113,7 @@ function SidebarContent({ pathname, onClose }: SidebarContentProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 pb-4 border-t border-[#094d46] pt-3 space-y-0.5">
+      <div className="px-3 pb-4 border-t border-[#1e293b] pt-3 space-y-0.5">
         {BOTTOM_ITEMS.map(({ href, label, icon: Icon }) => (
           <NavLink
             key={href}
@@ -125,7 +125,7 @@ function SidebarContent({ pathname, onClose }: SidebarContentProps) {
           />
         ))}
         <div className="px-3 pt-3">
-          <p className="text-[10px] text-[#7ea8a1] leading-relaxed">
+          <p className="text-[10px] text-[#64748b] leading-relaxed">
 
           </p>
         </div>
@@ -141,14 +141,14 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop fixed sidebar */}
-      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 bg-[#02332f] fixed inset-y-0 left-0 z-30">
+      <aside className="hidden lg:flex flex-col w-[250px] shrink-0 bg-[#0f172a] fixed inset-y-0 left-0 z-30">
         <SidebarContent pathname={pathname} />
       </aside>
 
       {/* Tablet/Mobile hamburger button */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 w-9 h-9 bg-[#02332f] rounded-lg flex items-center justify-center text-white shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-40 w-9 h-9 bg-[#0f172a] rounded-lg flex items-center justify-center text-white shadow-lg"
         aria-label="Open navigation"
       >
         <Menu size={18} />
@@ -161,7 +161,7 @@ export default function Sidebar() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative w-[260px] bg-[#02332f] h-full shadow-2xl">
+          <aside className="relative w-[260px] bg-[#0f172a] h-full shadow-2xl">
             <SidebarContent
               pathname={pathname}
               onClose={() => setMobileOpen(false)}
