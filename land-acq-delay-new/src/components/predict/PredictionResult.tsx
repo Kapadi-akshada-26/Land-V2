@@ -125,7 +125,7 @@ export default function PredictionResult({ result, onReset }: Props) {
       {/* ── 1. CIRCULAR RISK GAUGE & 2. PREDICTED DELAY DAYS ───────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* 1. Circular Risk Score Card Component (from V1) */}
-        <div className="bg-white border border-[#e6eaf0] rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-3">
+        <div className="bg-white border border-[#e6eaf0] rounded-2xl p-6 shadow-sm flex flex-col items-center justify-between text-center space-y-3">
           <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#687386]">
             1. Delay Risk Level Score Card
           </h3>
@@ -133,7 +133,7 @@ export default function PredictionResult({ result, onReset }: Props) {
           {/* Circular probability indicator (V1 Score Card) */}
           <div className="flex flex-col items-center justify-center gap-2 py-2">
             <div
-              className="relative w-32 h-32 rounded-full flex items-center justify-center"
+              className="relative w-32 h-32 rounded-full flex items-center justify-center shadow-xs"
               style={{
                 background: `conic-gradient(${color} ${pct * 3.6}deg, #f0f2f6 0deg)`,
               }}
@@ -151,6 +151,26 @@ export default function PredictionResult({ result, onReset }: Props) {
               <RiskBadge level={result.riskLevel} className="text-[14px] px-3.5 py-1" />
             </div>
             <p className="text-[11px] text-[#687386] mt-1 font-medium">XGBoost ML Calculated Delay Probability</p>
+          </div>
+
+          {/* Risk Range Scale Legend */}
+          <div className="w-full pt-3 border-t border-[#f1f5f9] grid grid-cols-4 gap-1 text-center">
+            <div className="px-1 py-1 rounded-lg bg-emerald-50/60 border border-emerald-100">
+              <p className="text-[11px] font-black text-emerald-600 leading-tight">Low</p>
+              <p className="text-[9px] font-extrabold text-emerald-600/90">(0-25%)</p>
+            </div>
+            <div className="px-1 py-1 rounded-lg bg-amber-50/60 border border-amber-100">
+              <p className="text-[11px] font-black text-amber-600 leading-tight">Med</p>
+              <p className="text-[9px] font-extrabold text-amber-600/90">(25-50%)</p>
+            </div>
+            <div className="px-1 py-1 rounded-lg bg-orange-50/60 border border-orange-100">
+              <p className="text-[11px] font-black text-orange-600 leading-tight">High</p>
+              <p className="text-[9px] font-extrabold text-orange-600/90">(50-75%)</p>
+            </div>
+            <div className="px-1 py-1 rounded-lg bg-red-50/60 border border-red-100">
+              <p className="text-[11px] font-black text-red-600 leading-tight">Crit</p>
+              <p className="text-[9px] font-extrabold text-red-600/90">(75-100%)</p>
+            </div>
           </div>
         </div>
 
